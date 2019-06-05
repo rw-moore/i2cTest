@@ -80,7 +80,7 @@ add_library(hal STATIC
         ${stmcube_hal}/Src/stm32h7xx_hal.c
         ${stmcube_hal}/Src/stm32h7xx_hal_i2c.c
         ${stmcube_hal}/Src/stm32h7xx_hal_i2c_ex.c
-        inc/lps22hb.h inc/lis3mdl.h)
+        inc/lps22hb.h inc/lis3mdl.h src/lps22hb.c)
 
 add_library(net STATIC
         ${stmcube_net}/netif/ppp/auth.c

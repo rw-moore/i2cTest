@@ -78,7 +78,6 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c) {
 void HAL_I2C_MspDeInit(I2C_HandleTypeDef* hi2c) {
   if(hi2c->Instance==I2C2) {
     __HAL_RCC_I2C2_CLK_DISABLE();
-
     /**I2C2 GPIO Configuration
     PF0     ------> I2C2_SDA
     PF1     ------> I2C2_SCL
@@ -87,4 +86,104 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* hi2c) {
   }
 }
 
+/* Writes a 16-bit value to the given memory address.
+ * Since I2C is an 8-bit protocol this will write the LSB to the address and the
+ * MSB to the next address. Little endian format it used since I2C devices use it.
+ */
+void I2CMemWrite16(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress,
+                uint8_t memAddress, uint16_t value){
+  /* Single byte variable to store the byte being written */
+  uint8_t data;
+  /* Loop over the bytes extracting and then writing each one */
+  for (int i=0; i<2; i++) {
+    /* Right shift the value by an increasing multiple of 8 so that the LSB is
+     * written first (i=0) then mask out all but the least significant 8 bits.
+     */
+    data = (value >> (8*i)) & 0xff;
+    /* Write the extracted byte to the I2C bus remembering to increase the memory
+     * address in the device for each successive byte.
+     */
+    if (HAL_I2C_Mem_Write(i2cBus, i2cAddress, memAddress+i, sizeof(uint8_t),
+                           &data, 1, I2C_TIMEOUT) != HAL_OK) {
+      Error_Handler();
+    }
+  }
+};
 
+/* Reads a 16-bit value from the given address.
+ * Since I2C is an 8-bit protocol this will read the LSB from the address and the
+ * MSB from the next address.
+ */
+uint16_t I2CRead16(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress, uint8_t memAddress){
+  /* Single byte variable to store the byte being read */
+  uint8_t data;
+  /* Variable to store the final multi-byte value */
+  uint16_t value=0;
+  /* Loop over the bytes extracting and then writing each one */
+  for (int i=0; i<2; i++) {
+    /* Read a byte from the I2C bus remembering to increase the memory
+     * address in the device for each successive byte.
+     */
+    if (HAL_I2C_Mem_Read(i2cBus, i2cAddress, memAddress+i, sizeof(uint8_t),
+                          &data, 1, I2C_TIMEOUT) != HAL_OK) {
+      Error_Handler();
+    }
+    /* Left shift the byte read and or it into the final value. The casting to a
+     * 16 bit variable is to ensure that there are bits to left shift into.
+     */
+    value |= (((uint16_t) data) << (i*8));
+  }
+  /* Return the final assembled value */
+  return value;
+};
+
+/* Writes a 24-bit value to the given address.
+ * Since I2C is an 8-bit protocol this will write the LSB to the address and the
+ * other two bytes to the next two addresses so that the MSB is at (address+2).
+ */
+void I2CWrite24(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress,
+                uint8_t memAddress,uint32_t value) {
+  /* Single byte variable to store the byte being written */
+  uint8_t data;
+  /* Loop over the bytes extracting and then writing each one */
+  for (int i=0; i<3; i++) {
+    /* Right shift the value by an increasing multiple of 8 so that the LSB is
+     * written first (i=0) then mask out all but the least significant 8 bits.
+     */
+    data = (value >> (8*i)) & 0xff;
+    /* Write the extracted byte to the I2C bus remembering to increase the memory
+     * address in the device for each sucecssive byte.
+     */
+    if (HAL_I2C_Mem_Write(i2cBus, i2cAddress, memAddress+i, sizeof(uint8_t),
+                          &data, 1, I2C_TIMEOUT) != HAL_OK) {
+      Error_Handler();
+    }
+  }
+};
+
+/* Reads a 24-bit value from the given address.
+ * Since I2C is an 8-bit protocol this will read the LSB from the address and the
+ * nest two bytes from the next two addresses i.e. the MSB is read from (address+2).
+ */
+uint32_t I2CRead24(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress, uint8_t memAddress){
+  /* Single byte variable to store the byte being read */
+  uint8_t data;
+  /* Variable to store the final multi-byte value */
+  uint32_t value=0;
+  /* Loop over the bytes extracting and then writing each one */
+  for (int i=0; i<3; i++) {
+    /* Read a byte from the I2C bus remembering to increase the memory
+     * address in the device for each successive byte.
+     */
+    if (HAL_I2C_Mem_Read(i2cBus, i2cAddress, memAddress+i, sizeof(uint8_t),
+                         &data, 1, I2C_TIMEOUT) != HAL_OK) {
+      Error_Handler();
+    }
+    /* Left shift the byte read and or it into the final value. The casting to a
+     * 16 bit variable is to ensure that there are bits to left shift into.
+     */
+    value |= (((uint32_t) data) << (i*8));
+  }
+  /* Return the final assembled value */
+  return value;
+};

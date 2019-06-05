@@ -8,7 +8,7 @@
 
 #include <stdio.h>
 
-#include "adxl355.h"
+#include "lps22hb.h"
 #include "stm32h7xx_hal_def.h"
 #include "main.h"
 
@@ -18,8 +18,8 @@
  */
 void LPS22HBInit(void) {
   // Configure the chip
-  adxl355.i2cBus = &I2C_Bus2;
-  adxl355.i2cAddress = ADXL355_I2C_ADDRESS;
+  lps22hb.i2cBus = &I2C_Bus2;
+  lps22hb.i2cAddress = LPS22HB_I2C_ADDRESS;
 }
 
 /*
@@ -29,10 +29,10 @@ HAL_StatusTypeDef LPS22HBConfigure(LPS22HBHandle_t *dev) {
   uint8_t data[4];
   HAL_StatusTypeDef status;
   /* First check that we can communicate with the device */
-  status = HAL_I2C_Mem_Read(dev->i2cBus, dev->i2cAddress, ADXL355_REG_DEVID_AD,
+  status = HAL_I2C_Mem_Read(dev->i2cBus, dev->i2cAddress, LPS22HB_REG_WHO_AM_I,
                             sizeof(uint8_t), data, 1, 1000);
   if (status != HAL_OK) {
-    fprintf(stderr,"ADXL355: Reading device ID failed\n");
+    fprintf(stderr,"LPS22HB: Reading device ID failed\n");
     Error_Handler();
   }
   return HAL_OK;

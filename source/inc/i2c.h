@@ -19,9 +19,17 @@ I2C_HandleTypeDef I2C_Bus2;
 I2C_HandleTypeDef I2C_Bus3;
 I2C_HandleTypeDef I2C_Bus4;
 
-// I2C Function prototypes
+/* I2C Function prototypes */
 void I2CInit(void);
 void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c);
 void HAL_I2C_MspDeInit(I2C_HandleTypeDef* hi2c);
+
+/* Functions to read and write multi-byte values */
+void I2CWrite16(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress, uint8_t memAddress,
+    uint16_t value);
+uint16_t I2CRead16(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress, uint8_t memAddress);
+void I2CWrite24(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress, uint8_t memAddress,
+    uint32_t value);
+uint32_t I2CRead24(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress, uint8_t memAddress);
 
 #endif //I2CTEST_I2C_H
