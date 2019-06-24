@@ -34,6 +34,7 @@ HAL_StatusTypeDef ADXL355Configure(ADXL355Handle_t *dev) {
   /* First check that we can communicate with the device */
   status = HAL_I2C_Mem_Read(dev->i2cBus, dev->i2cAddress, ADXL355_REG_DEVID_AD,
           sizeof(uint8_t), data, 1, 1000);
+  HAL_I2C_IsDeviceReady(dev->i2cBus, dev->i2cAddress,1,1000);
   if (status != HAL_OK) {
     fprintf(stderr,"ADXL355: Reading device ID failed\n");
     Error_Handler();

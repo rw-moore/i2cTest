@@ -1,5 +1,8 @@
 # CMake file to setup rules for using the ARM cross compiler
 
+# Prevent compiling executables for tests
+set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
+
 # Use the ARM gcc compiler in standard rules
 set(toolchain_prefix arm-none-eabi-)
 

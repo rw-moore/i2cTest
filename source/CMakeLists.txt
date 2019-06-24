@@ -4,6 +4,10 @@ cmake_minimum_required(VERSION 3.9.1)
 set(CMAKE_SYSTEM_NAME Linux)
 set(CMAKE_SYSTEM_PROCESSOR arm)
 
+set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
+set(CMAKE_C_COMPILER_WORKS 1)
+set(CMAKE_CXX_COMPILER_WORKS 1)
+
 project(sensors)
 include(ARMcompiler.cmake)
 

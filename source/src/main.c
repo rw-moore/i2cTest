@@ -108,10 +108,38 @@ void processData(char* buf) {
   if (!strcmp(buf, "reboot")) {
     NVIC_SystemReset();
   }
-  *(uint32_t *)data=0x01020304;
-  printf("I2C Address = 0x%x\n",adxl355.i2cAddress);
+
+  if (!strcmp(buf, "i2c_init")) {
+    I2CInit();
+    ADXL355Init();
+    return;
+  }
+
+  if (!strcmp(buf, "i2c_test1")) {
+    *(uint32_t *)data=0x01020304;
+    status = HAL_I2C_Master_Transmit(&I2C_Bus2, 0x0a, data, 3, 1000);
+    if (status != HAL_OK) {
+      fprintf(stderr, "I2C: Master transmit failed\n");
+      Error_Handler();
+    }
+    return;
+  }
+
+  if (!strcmp(buf, "i2c_test2")) {
+    *(uint32_t *)data=0x01020304;
+    status = HAL_I2C_Master_Receive(&I2C_Bus2, 0x0a, data, 3, 1000);
+    if (status != HAL_OK) {
+      fprintf(stderr, "I2C: Master receive failed\n");
+      Error_Handler();
+    }
+    return;
+  }
+
   if (!strcmp(buf, "adxl355")) {
+    *(uint32_t *)data=0x01020304;
+    printf("I2C Address = 0x%x\n",adxl355.i2cAddress);
     status = HAL_I2C_Mem_Read(adxl355.i2cBus, adxl355.i2cAddress, ADXL355_REG_PARTID, sizeof(uint8_t), data, 1, 1000);
+    HAL_I2C_IsDeviceReady(adxl355.i2cBus, adxl355.i2cAddress,1,1000);
     if (status != HAL_OK) {
       fprintf(stderr, "ADXL355: Reading device ID failed\n");
       Error_Handler();
@@ -119,18 +147,21 @@ void processData(char* buf) {
     printf("Device ID: 0x%08lx\r\n", *(uint32_t *)data);
     status = HAL_I2C_Mem_Read(adxl355.i2cBus, adxl355.i2cAddress, ADXL355_ANALOGUE_DEVICES_ID, sizeof(uint8_t), data, 1,
                               1000);
+    HAL_I2C_IsDeviceReady(adxl355.i2cBus, adxl355.i2cAddress,1,1000);
     if (status != HAL_OK) {
       fprintf(stderr, "ADXL355: Reading analogue devices ID failed\n");
       Error_Handler();
     }
     printf("Analogue Devices ID: 0x%02x\r\n", data[0]);
     status = HAL_I2C_Mem_Read(adxl355.i2cBus, adxl355.i2cAddress, ADXL355_REG_DEVID_MST, sizeof(uint8_t), data, 1, 1000);
+    HAL_I2C_IsDeviceReady(adxl355.i2cBus, adxl355.i2cAddress,1,1000);
     if (status != HAL_OK) {
       fprintf(stderr, "ADXL355: Reading MEMS ID failed\n");
       Error_Handler();
     }
     printf("MEMS ID: 0x%02x\r\n", data[0]);
     status = HAL_I2C_Mem_Read(adxl355.i2cBus, adxl355.i2cAddress, ADXL355_REG_REVID, sizeof(uint8_t), data, 1, 1000);
+    HAL_I2C_IsDeviceReady(adxl355.i2cBus, adxl355.i2cAddress,1,1000);
     if (status != HAL_OK) {
       fprintf(stderr, "ADXL355: Reading Revision ID failed\n");
       Error_Handler();
@@ -217,9 +248,6 @@ int main(void)
   BSP_LED_Init(LED1);
   BSP_LED_Init(LED2);
   BSP_LED_Init(LED3);
-
-  I2CInit();
-  ADXL355Init();
 
   comms_init();
   size_t ccount = 0;
@@ -319,60 +347,53 @@ void SystemClock_Config(void)
 
 static void I2C_SystemClock_Config(void)
 {
-  RCC_ClkInitTypeDef RCC_ClkInitStruct;
-  RCC_OscInitTypeDef RCC_OscInitStruct;
-  HAL_StatusTypeDef ret = HAL_OK;
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
 
-  /*!< Supply configuration update enable */
+  /** Supply configuration update enable
+  */
   HAL_PWREx_ConfigSupply(PWR_LDO_SUPPLY);
-
-  /* The voltage scaling allows optimizing the power consumption when the device is
-     clocked below the maximum system frequency, to update the voltage scaling value
-     regarding system frequency refer to product datasheet.  */
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+  /** Configure the main internal regulator output voltage
+  */
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
 
   while(!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {}
-
-  /* Enable HSE Oscillator and activate PLL with HSE as source */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
-  RCC_OscInitStruct.HSIState = RCC_HSI_OFF;
-  RCC_OscInitStruct.CSIState = RCC_CSI_OFF;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-
-  RCC_OscInitStruct.PLL.PLLM = 4;
-  RCC_OscInitStruct.PLL.PLLN = 400;
-  RCC_OscInitStruct.PLL.PLLFRACN = 0;
-  RCC_OscInitStruct.PLL.PLLP = 2;
-  RCC_OscInitStruct.PLL.PLLR = 2;
-  RCC_OscInitStruct.PLL.PLLQ = 4;
-
-  RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1VCOWIDE;
-  RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1VCIRANGE_2;
-  ret = HAL_RCC_OscConfig(&RCC_OscInitStruct);
-  if(ret != HAL_OK)
+  /** Initializes the CPU, AHB and APB busses clocks
+  */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.HSIState = RCC_HSI_DIV1;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
   }
-
-/* Select PLL as system clock source and configure  bus clocks dividers */
-  RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_D1PCLK1 | RCC_CLOCKTYPE_PCLK1 | \
-                                 RCC_CLOCKTYPE_PCLK2  | RCC_CLOCKTYPE_D3PCLK1);
-
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  /** Initializes the CPU, AHB and APB busses clocks
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                                |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2
+                                |RCC_CLOCKTYPE_D3PCLK1|RCC_CLOCKTYPE_D1PCLK1;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
   RCC_ClkInitStruct.SYSCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV2;
-  RCC_ClkInitStruct.APB3CLKDivider = RCC_APB3_DIV2;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_APB1_DIV2;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_APB2_DIV2;
-  RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV2;
-  ret = HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4);
-  if(ret != HAL_OK)
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB3CLKDivider = RCC_APB3_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_APB1_DIV1;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_APB2_DIV1;
+  RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV1;
+
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
   {
     Error_Handler();
   }
-
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_I2C2|RCC_PERIPHCLK_I2C3
+                                             |RCC_PERIPHCLK_I2C1|RCC_PERIPHCLK_I2C4;
+  PeriphClkInitStruct.I2c123ClockSelection = RCC_I2C123CLKSOURCE_D2PCLK1;
+  PeriphClkInitStruct.I2c4ClockSelection = RCC_I2C4CLKSOURCE_D3PCLK1;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
 }
 
 /**
@@ -460,6 +481,17 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USB_OverCurrent_GPIO_Port, &GPIO_InitStruct);
+
+  /* I2C2 GPIO Configuration
+    PF0     ------> I2C2_SDA
+    PF1     ------> I2C2_SCL
+*/
+  GPIO_InitStruct.Pin       = GPIO_PIN_0|GPIO_PIN_1;
+  GPIO_InitStruct.Mode      = GPIO_MODE_AF_OD;
+  GPIO_InitStruct.Pull      = GPIO_NOPULL;
+  GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Alternate = GPIO_AF4_I2C2;
+  HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
 }
 
