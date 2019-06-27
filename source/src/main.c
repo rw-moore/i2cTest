@@ -27,6 +27,7 @@
 #include "adxl355.h"
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <string.h>
 #include <uart_io.h>
 
@@ -74,9 +75,6 @@ static void MX_USB_OTG_FS_PCD_Init(void);
 
 
 void processData(char* buf) {
-  HAL_StatusTypeDef status;
-  uint8_t data[4];
-
 	if (strlen(buf) == 0) {
         return;
 	}
@@ -110,63 +108,28 @@ void processData(char* buf) {
   }
 
   if (!strcmp(buf, "i2c_init")) {
-    I2CInit();
-    ADXL355Init();
+    I2C_Initialize();
+    ADXL355_Initialize();
     return;
   }
 
-  if (!strcmp(buf, "i2c_test1")) {
-    *(uint32_t *)data=0x01020304;
-    status = HAL_I2C_Master_Transmit(&I2C_Bus2, 0x0a, data, 3, 1000);
-    if (status != HAL_OK) {
-      fprintf(stderr, "I2C: Master transmit failed\n");
-      Error_Handler();
+  if (!strncmp(buf,"adxl355",7)) {
+    char *cmd=strtok(buf," ");
+    char *arg1=strtok(NULL," ");
+    char *arg2=strtok(NULL," ");
+    if(!arg1) {
+      printf("Syntax error: adxl355 <reg> [<value>]\n");
+      return;
     }
-    return;
-  }
-
-  if (!strcmp(buf, "i2c_test2")) {
-    *(uint32_t *)data=0x01020304;
-    status = HAL_I2C_Master_Receive(&I2C_Bus2, 0x0a, data, 3, 1000);
-    if (status != HAL_OK) {
-      fprintf(stderr, "I2C: Master receive failed\n");
-      Error_Handler();
+    uint8_t reg=atoi(arg1);
+    if(!arg2) {
+      uint8_t value = ADXL355_ReadRegister(&adxl355, reg);
+      printf("ADXL355 register 0x%02x read 0x%02x (%d)\n", reg, value, value);
+    } else {
+      uint8_t value=atoi(arg2);
+      ADXL355_WriteRegister(&adxl355,reg,value);
+      printf("ADXL355 register 0x%02x wrote 0x%02x (%d)\n", reg, value, value);
     }
-    return;
-  }
-
-  if (!strcmp(buf, "adxl355")) {
-    *(uint32_t *)data=0x01020304;
-    printf("I2C Address = 0x%x\n",adxl355.i2cAddress);
-    status = HAL_I2C_Mem_Read(adxl355.i2cBus, adxl355.i2cAddress, ADXL355_REG_PARTID, sizeof(uint8_t), data, 1, 1000);
-    HAL_I2C_IsDeviceReady(adxl355.i2cBus, adxl355.i2cAddress,1,1000);
-    if (status != HAL_OK) {
-      fprintf(stderr, "ADXL355: Reading device ID failed\n");
-      Error_Handler();
-    }
-    printf("Device ID: 0x%08lx\r\n", *(uint32_t *)data);
-    status = HAL_I2C_Mem_Read(adxl355.i2cBus, adxl355.i2cAddress, ADXL355_ANALOGUE_DEVICES_ID, sizeof(uint8_t), data, 1,
-                              1000);
-    HAL_I2C_IsDeviceReady(adxl355.i2cBus, adxl355.i2cAddress,1,1000);
-    if (status != HAL_OK) {
-      fprintf(stderr, "ADXL355: Reading analogue devices ID failed\n");
-      Error_Handler();
-    }
-    printf("Analogue Devices ID: 0x%02x\r\n", data[0]);
-    status = HAL_I2C_Mem_Read(adxl355.i2cBus, adxl355.i2cAddress, ADXL355_REG_DEVID_MST, sizeof(uint8_t), data, 1, 1000);
-    HAL_I2C_IsDeviceReady(adxl355.i2cBus, adxl355.i2cAddress,1,1000);
-    if (status != HAL_OK) {
-      fprintf(stderr, "ADXL355: Reading MEMS ID failed\n");
-      Error_Handler();
-    }
-    printf("MEMS ID: 0x%02x\r\n", data[0]);
-    status = HAL_I2C_Mem_Read(adxl355.i2cBus, adxl355.i2cAddress, ADXL355_REG_REVID, sizeof(uint8_t), data, 1, 1000);
-    HAL_I2C_IsDeviceReady(adxl355.i2cBus, adxl355.i2cAddress,1,1000);
-    if (status != HAL_OK) {
-      fprintf(stderr, "ADXL355: Reading Revision ID failed\n");
-      Error_Handler();
-    }
-    printf("Board revision ID: 0x%02x\r\n", data[0]);
     return;
   }
 

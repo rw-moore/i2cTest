@@ -147,32 +147,68 @@ typedef enum {
    * Write Code 0x52 to reset the device, similar to a power-on reset (POR)
    */
   ADXL355_REG_RESET      = 0x2f
-} ADXL355Register_t;
+} ADXL355_Register_t;
 
 /* Dynamic ranges for accelerometer */
-/* +/- 2g dynamic range */
-#define ADXL355_RANGE_2G 1
-/* +/- 4g dynamic range */
-#define ADXL355_RANGE_4G 2
-/* +/- 8g dynamic range */
-#define ADXL355_RANGE_8G 3
+typedef enum {
+  /* +/- 2g dynamic range */
+      ADXL355_RANGE_2G = 1,
+  /* +/- 4g dynamic range */
+      ADXL355_RANGE_4G = 2,
+  /* +/- 8g dynamic range */
+      ADXL355_RANGE_8G = 3
+} ADXL355_Range_t;
 
 /* Structure to hold information about an ADXL355 device */
 typedef struct {
     I2C_HandleTypeDef *i2cBus;          /* I2C bus handler */
     I2CAddress_t       i2cAddress;      /* Address on the I2C bus */
-    uint8_t            range;           /* Configured dynamic range */
+    ADXL355_Range_t    range;           /* Configured dynamic range */
     bool               standby;         /* True if device is configured to be in standby */
     bool               enableTemp;      /* True if temperature measurement is enabled */
-} ADXL355Handle_t;
+} ADXL355_Handle_t;
 
 /* Create global structure to contain the configuration data for attached ADXL355 sensors */
-ADXL355Handle_t adxl355;
+ADXL355_Handle_t adxl355;
 
 // ADXL355 Function prototypes
-void ADXL355Init(void);
-HAL_StatusTypeDef ADXL355Configure(ADXL355Handle_t *dev);
-uint8_t ADXL355ReadRegister(ADXL355Handle_t *dev,ADXL355Register_t reg);
-void ADXL355WriteRegister(ADXL355Handle_t *dev,ADXL355Register_t reg,uint8_t value);
+void ADXL355_Initialize(void);
+HAL_StatusTypeDef ADXL355_Configure(ADXL355_Handle_t *dev);
+void ADXL355_StandbyOn(ADXL355_Handle_t *dev);
+void ADXL355_StandbyOff(ADXL355_Handle_t *dev);
+void ADXL355_SetRange(ADXL355_Handle_t *dev, ADXL355_Range_t range);
+uint16_t ADXL355_RawTemperature(ADXL355_Handle_t *dev);
+int32_t ADXL355_XAcceleration(ADXL355_Handle_t *dev);
+int32_t ADXL355_YAcceleration(ADXL355_Handle_t *dev);
+int32_t ADXL355_ZAcceleration(ADXL355_Handle_t *dev);
+int32_t ADXL355_XTrim(ADXL355_Handle_t *dev);
+int32_t ADXL355_YTrim(ADXL355_Handle_t *dev);
+int32_t ADXL355_ZTrim(ADXL355_Handle_t *dev);
+void ADXL355_SetXTrim(ADXL355_Handle_t *dev,int32_t value);
+void ADXL355_SetYTrim(ADXL355_Handle_t *dev,int32_t value);
+void ADXL355_SetZTrim(ADXL355_Handle_t *dev,int32_t value);
+
+// Simple inline functions
+/*
+ * Reads a register on the ADXL355 and returns the value.
+ */
+static inline uint8_t ADXL355_ReadRegister(ADXL355_Handle_t *dev, ADXL355_Register_t reg) {
+  return I2C_Read8(dev->i2cBus, dev->i2cAddress, reg);
+}
+
+/*
+ * Writes to a register on the ADXL355.
+ */
+static inline void ADXL355_WriteRegister(ADXL355_Handle_t *dev, ADXL355_Register_t reg, uint8_t value) {
+  I2C_Write8(dev->i2cBus, dev->i2cAddress, reg, value);
+}
+
+/*
+ * Completely resets the ADXL355 to power on status.
+ * This is achieved by writing 0x52 to the reset register as per the ADXL355 datasheet.
+ */
+static inline void ADXL355_Reset(ADXL355_Handle_t *dev) {
+  I2C_Write8(dev->i2cBus, dev->i2cAddress, ADXL355_REG_RESET, 0x52);
+}
 
 #endif //I2CTEST_ADXL355_H

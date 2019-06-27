@@ -5,6 +5,8 @@
 #ifndef I2CTEST_I2C_H
 #define I2CTEST_I2C_H
 
+#include <stdint.h>
+
 #include "stm32h7xx_hal.h"
 #include "stm32h7xx_nucleo_144.h"
 
@@ -20,16 +22,18 @@ I2C_HandleTypeDef I2C_Bus3;
 I2C_HandleTypeDef I2C_Bus4;
 
 /* I2C Function prototypes */
-void I2CInit(void);
-void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c);
-void HAL_I2C_MspDeInit(I2C_HandleTypeDef* hi2c);
+void I2C_Initialize(void);
+void I2C_ErrorHandler(char *func,I2CAddress_t i2cAddress, uint8_t memAddress,char *msg);
 
-/* Functions to read and write multi-byte values */
-void I2CWrite16(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress, uint8_t memAddress,
-    uint16_t value);
-uint16_t I2CRead16(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress, uint8_t memAddress);
-void I2CWrite24(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress, uint8_t memAddress,
+/* Functions to read and write register values */
+void I2C_Write8(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress, uint8_t memAddress,
+                uint8_t value);
+uint8_t I2C_Read8(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress, uint8_t memAddress);
+void I2C_Write16(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress, uint8_t memAddress,
+                uint16_t value);
+uint16_t I2C_Read16(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress, uint8_t memAddress);
+void I2C_Write24(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress, uint8_t memAddress,
     uint32_t value);
-uint32_t I2CRead24(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress, uint8_t memAddress);
+uint32_t I2C_Read24(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress, uint8_t memAddress);
 
 #endif //I2CTEST_I2C_H
