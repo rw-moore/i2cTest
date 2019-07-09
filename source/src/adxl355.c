@@ -218,6 +218,7 @@ void ADXL355_SetZTrim(ADXL355_Handle_t *dev,int32_t value) {
   uint32_t val=(((uint32_t)value) >> 4) & 0xffff;
   /* Write the trim data to the device */
   I2C_Write16(dev->i2cBus, dev->i2cAddress, ADXL355_REG_OFFSET_Z_H, (uint16_t)val);
+  
 }
 
 
