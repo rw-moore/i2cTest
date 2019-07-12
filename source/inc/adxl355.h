@@ -9,9 +9,9 @@
 #include "i2c.h"
 
 /* Default I2C address of all ADXL355 chips */
-static const I2CAddress_t ADXL355_I2C_ADDRESS     = 0x1d;
+static const I2C_Address_t ADXL355_I2C_ADDRESS     = 0x1d;
 /* Alternate I2C address of all ADXL355 chips used if ASEL pin is high*/
-static const I2CAddress_t ADXL355_I2C_ADDRESS_ALT = 0x53;
+static const I2C_Address_t ADXL355_I2C_ADDRESS_ALT = 0x53;
 
 /* Device IDs stored in registers */
 static const uint8_t ADXL355_ANALOGUE_DEVICES_ID = 0xad;
@@ -162,7 +162,7 @@ typedef enum {
 /* Structure to hold information about an ADXL355 device */
 typedef struct {
     I2C_HandleTypeDef *i2cBus;          /* I2C bus handler */
-    I2CAddress_t       i2cAddress;      /* Address on the I2C bus */
+    I2C_Address_t       i2cAddress;      /* Address on the I2C bus */
     ADXL355_Range_t    range;           /* Configured dynamic range */
     bool               standby;         /* True if device is configured to be in standby */
     bool               enableTemp;      /* True if temperature measurement is enabled */

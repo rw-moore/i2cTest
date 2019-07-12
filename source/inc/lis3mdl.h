@@ -9,9 +9,9 @@
 #include "i2c.h"
 
 /* Default I2C address of all LIS3MDL chips */
-static const I2CAddress_t LIS3MDL_I2C_ADDRESS     = 0x1c;
+static const I2C_Address_t LIS3MDL_I2C_ADDRESS     = 0x1c;
 /* Alternate I2C address of all LIS3MDL chips used if SDO/SA1 pin is high*/
-static const I2CAddress_t LIS3MDL_I2C_ADDRESS_ALT = 0x1e;
+static const I2C_Address_t LIS3MDL_I2C_ADDRESS_ALT = 0x1e;
 
 /* Device ID stored in WHO_AM_I register */
 static const uint8_t LIS3MDL_DEVICE_ID           = 0x3d;
@@ -120,7 +120,7 @@ typedef enum {
 /* Structure to hold information about an LHS22HB device */
 typedef struct {
   I2C_HandleTypeDef *i2cBus;          /* I2C bus handler */
-  I2CAddress_t       i2cAddress;      /* Address on the I2C bus */
+  I2C_Address_t       i2cAddress;      /* Address on the I2C bus */
 } LIS3MDLHandle_t;
 
 /* Create global structure to contain the configuration data for attached LIS3MDL sensors */

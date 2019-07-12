@@ -41,6 +41,12 @@ HAL_StatusTypeDef ADXL355_Configure(ADXL355_Handle_t *dev) {
    * so that we can configure it. */
   ADXL355_Reset(dev);
   ADXL355_StandbyOn(dev);
+  /* Enable (or disable) the temperature sensor */
+  if(dev->enableTemp) {
+    ADXL355_EnableTemperature(dev);
+  } else {
+    ADXL355_DisableTemperature(dev);
+  }
   /* Set the dynamic range of the device */
   ADXL355_SetRange(dev,dev->range);
   /* If the device handle indicates that standby mode is not enabled then turn it off now that
@@ -152,7 +158,7 @@ uint16_t ADXL355_RawTemperature(ADXL355_Handle_t *dev) {
  */
 int32_t ADXL355_XAcceleration(ADXL355_Handle_t *dev) {
   /* Read the acceleration data from the device */
-  int32_t accel=(int32_t)I2C_Read24(dev->i2cBus, dev->i2cAddress, ADXL355_REG_XDATA3);
+  int32_t accel=(int32_t)I2C_Read24LE(dev->i2cBus, dev->i2cAddress, ADXL355_REG_XDATA3);
   /* Right shift by 4 bits to get rid of the reserved bits but use division since we have
    * a signed integer and bitwise operations on these are undefined */
   return accel / (1 << 4);
@@ -163,7 +169,7 @@ int32_t ADXL355_XAcceleration(ADXL355_Handle_t *dev) {
  */
 int32_t ADXL355_YAcceleration(ADXL355_Handle_t *dev) {
   /* Read the acceleration data from the device */
-  int32_t accel=(int32_t)I2C_Read24(dev->i2cBus, dev->i2cAddress, ADXL355_REG_YDATA3);
+  int32_t accel=(int32_t)I2C_Read24LE(dev->i2cBus, dev->i2cAddress, ADXL355_REG_YDATA3);
   /* Right shift by 4 bits to get rid of the reserved bits but use division since we have
    * a signed integer and bitwise operations on these are undefined */
   return accel / (1 << 4);
@@ -174,7 +180,7 @@ int32_t ADXL355_YAcceleration(ADXL355_Handle_t *dev) {
  */
 int32_t ADXL355_ZAcceleration(ADXL355_Handle_t *dev) {
   /* Read the acceleration data from the device */
-  int32_t accel=(int32_t)I2C_Read24(dev->i2cBus, dev->i2cAddress, ADXL355_REG_ZDATA3);
+  int32_t accel=(int32_t)I2C_Read24LE(dev->i2cBus, dev->i2cAddress, ADXL355_REG_ZDATA3);
   /* Right shift by 4 bits to get rid of the reserved bits but use division since we have
    * a signed integer and bitwise operations on these are undefined */
   return accel / (1 << 4);
@@ -188,7 +194,7 @@ int32_t ADXL355_ZAcceleration(ADXL355_Handle_t *dev) {
  */
 int32_t ADXL355_XTrim(ADXL355_Handle_t *dev) {
   /* Read the trim data from the device */
-  int16_t trim=(int16_t)I2C_Read16(dev->i2cBus, dev->i2cAddress, ADXL355_REG_OFFSET_X_H);
+  int16_t trim=(int16_t)I2C_Read16LE(dev->i2cBus, dev->i2cAddress, ADXL355_REG_OFFSET_X_H);
   /* Left shift by 4 bits so the return value looks the same as the acceleration data,
    * but use multiplication since bitwise operators on signed ints is undefined */
   return ((int32_t) trim) * (1 << 4);
@@ -202,7 +208,7 @@ int32_t ADXL355_XTrim(ADXL355_Handle_t *dev) {
  */
 int32_t ADXL355_YTrim(ADXL355_Handle_t *dev) {
   /* Read the trim data from the device */
-  int16_t trim=(int16_t)I2C_Read16(dev->i2cBus, dev->i2cAddress, ADXL355_REG_OFFSET_Y_H);
+  int16_t trim=(int16_t)I2C_Read16LE(dev->i2cBus, dev->i2cAddress, ADXL355_REG_OFFSET_Y_H);
   /* Left shift by 4 bits so the return value looks the same as the acceleration data,
    * but use multiplication since bitwise operators on signed ints is undefined */
   return ((int32_t) trim) * (1 << 4);
@@ -216,7 +222,7 @@ int32_t ADXL355_YTrim(ADXL355_Handle_t *dev) {
  */
 int32_t ADXL355_ZTrim(ADXL355_Handle_t *dev) {
   /* Read the trim data from the device */
-  int16_t trim=(int16_t)I2C_Read16(dev->i2cBus, dev->i2cAddress, ADXL355_REG_OFFSET_Z_H);
+  int16_t trim=(int16_t)I2C_Read16LE(dev->i2cBus, dev->i2cAddress, ADXL355_REG_OFFSET_Z_H);
   /* Left shift by 4 bits so the return value looks the same as the acceleration data,
    * but use multiplication since bitwise operators on signed ints is undefined */
   return ((int32_t) trim) * (1 << 4);
@@ -232,7 +238,7 @@ void ADXL355_SetXTrim(ADXL355_Handle_t *dev,int32_t value) {
    * out all but the least significant 16 bits. */
   uint32_t val=(((uint32_t)value) >> 4) & 0xffff;
   /* Write the trim data to the device */
-  I2C_Write16(dev->i2cBus, dev->i2cAddress, ADXL355_REG_OFFSET_X_H, (uint16_t)val);
+  I2C_Write16LE(dev->i2cBus, dev->i2cAddress, ADXL355_REG_OFFSET_X_H, (uint16_t)val);
 }
 
 /*
@@ -245,7 +251,7 @@ void ADXL355_SetYTrim(ADXL355_Handle_t *dev,int32_t value) {
    * out all but the least significant 16 bits. */
   uint32_t val=(((uint32_t)value) >> 4) & 0xffff;
   /* Write the trim data to the device */
-  I2C_Write16(dev->i2cBus, dev->i2cAddress, ADXL355_REG_OFFSET_Y_H, (uint16_t)val);
+  I2C_Write16LE(dev->i2cBus, dev->i2cAddress, ADXL355_REG_OFFSET_Y_H, (uint16_t)val);
 }
 
 /*
@@ -258,7 +264,7 @@ void ADXL355_SetZTrim(ADXL355_Handle_t *dev,int32_t value) {
    * out all but the least significant 16 bits. */
   uint32_t val=(((uint32_t)value) >> 4) & 0xffff;
   /* Write the trim data to the device */
-  I2C_Write16(dev->i2cBus, dev->i2cAddress, ADXL355_REG_OFFSET_Z_H, (uint16_t)val);
+  I2C_Write16LE(dev->i2cBus, dev->i2cAddress, ADXL355_REG_OFFSET_Z_H, (uint16_t)val);
 }
 
 

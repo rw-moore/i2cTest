@@ -93,7 +93,7 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* hi2c) {
 /* Writes an 8-bit value to the given memory address.
  * This code handles the storage and address pointers and error handling needed by the HAL routines.
  */
-void I2C_Write8(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress,
+void I2C_Write8(I2C_HandleTypeDef *i2cBus, I2C_Address_t i2cAddress,
                 uint8_t memAddress, uint8_t value){
   /* Write the value byte to the I2C bus remembering to increase the memory
    * address in the device for each successive byte.
@@ -108,7 +108,7 @@ void I2C_Write8(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress,
  * This wraps the HAL routines to provide a simple call that returns the value. It also
  * handles errors raised by the HAL.
  */
-uint8_t I2C_Read8(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress, uint8_t memAddress){
+uint8_t I2C_Read8(I2C_HandleTypeDef *i2cBus, I2C_Address_t i2cAddress, uint8_t memAddress){
   /* Variable to store the final value */
   uint8_t value=0;
   /* Read a byte from the I2C bus remembering to increase the memory
@@ -123,11 +123,11 @@ uint8_t I2C_Read8(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress, uint8_t me
 };
 
 
-/* Writes a 16-bit value to the given memory address.
+/* Writes a 16-bit value to the given memory address in little-endian format.
  * Since I2C is an 8-bit protocol this will write the MSB to the address and the
- * LSB to the next address. Little endian format it used since I2C devices use it.
+ * LSB to the next address.
  */
-void I2C_Write16(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress,
+void I2C_Write16LE(I2C_HandleTypeDef *i2cBus, I2C_Address_t i2cAddress,
                 uint8_t memAddress, uint16_t value){
   /* Single byte variable to store the byte being written */
   uint8_t data;
@@ -147,11 +147,11 @@ void I2C_Write16(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress,
   }
 };
 
-/* Reads a 16-bit value from the given address.
+/* Reads a 16-bit value from the given address in little-endian format.
  * Since I2C is an 8-bit protocol this will read the MSB from the address and the
  * LSB from the next address.
  */
-uint16_t I2C_Read16(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress, uint8_t memAddress){
+uint16_t I2C_Read16LE(I2C_HandleTypeDef *i2cBus, I2C_Address_t i2cAddress, uint8_t memAddress){
   /* Single byte variable to store the byte being read */
   uint8_t data;
   /* Variable to store the final multi-byte value */
@@ -172,11 +172,60 @@ uint16_t I2C_Read16(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress, uint8_t 
   return value;
 };
 
-/* Writes a 24-bit value to the given address.
+/* Writes a 16-bit value to the given memory address in big-endian format.
+ * Since I2C is an 8-bit protocol this will write the LSB to the address and the
+ * MSB to the next address.
+ */
+void I2C_Write16BE(I2C_HandleTypeDef *i2cBus, I2C_Address_t i2cAddress,
+                   uint8_t memAddress, uint16_t value){
+  /* Single byte variable to store the byte being written */
+  uint8_t data;
+  /* Loop over the bytes extracting and then writing each one */
+  for (int i=0; i<2; i++) {
+    /* Right shift the value by a increasing multiple of 8 so that the LSB is
+     * written first (i=0) then mask out all but 8 bits.
+     */
+    data = (value >> (8*i)) & 0xff;
+    /* Write the extracted byte to the I2C bus remembering to increase the memory
+     * address in the device for each successive byte.
+     */
+    if (HAL_I2C_Mem_Write(i2cBus, i2cAddress, memAddress+i, sizeof(uint8_t),
+                          &data, 1, I2C_TIMEOUT) != HAL_OK) {
+      I2C_ErrorHandler("I2CWrite16",i2cAddress,memAddress+i,"I2C error on write");
+    }
+  }
+};
+
+/* Reads a 16-bit value from the given address in big-endian format.
+ * Since I2C is an 8-bit protocol this will read the LSB from the address and the
+ * MSB from the next address.
+ */
+uint16_t I2C_Read16BE(I2C_HandleTypeDef *i2cBus, I2C_Address_t i2cAddress, uint8_t memAddress){
+  /* Single byte variable to store the byte being read */
+  uint8_t data;
+  /* Variable to store the final multi-byte value */
+  uint16_t value=0;
+  /* Loop over the bytes extracting and then writing each one */
+  for (int i=0; i<2; i++) {
+    /* Read a byte from the I2C bus remembering to increase the memory
+     * address in the device for each successive byte.
+     */
+    if (HAL_I2C_Mem_Read(i2cBus, i2cAddress, memAddress+i, sizeof(uint8_t),
+                         &data, 1, I2C_TIMEOUT) != HAL_OK) {
+      I2C_ErrorHandler("I2CRead16",i2cAddress,memAddress+i,"I2C error on read");
+    }
+    /* Left shift the data by 8 bits and OR it to the value. */
+    value |= (data << (8*i));
+  }
+  /* Return the final assembled value */
+  return value;
+};
+
+/* Writes a 24-bit value to the given address in little-endian format.
  * Since I2C is an 8-bit protocol this will write the MSB to the address and the
  * other two bytes to the next two addresses so that the LSB is at (address+2).
  */
-void I2C_Write24(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress,
+void I2C_Write24LE(I2C_HandleTypeDef *i2cBus, I2C_Address_t i2cAddress,
                 uint8_t memAddress,uint32_t value) {
   /* Single byte variable to store the byte being written */
   uint8_t data;
@@ -191,16 +240,16 @@ void I2C_Write24(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress,
      */
     if (HAL_I2C_Mem_Write(i2cBus, i2cAddress, memAddress+i, sizeof(uint8_t),
                           &data, 1, I2C_TIMEOUT) != HAL_OK) {
-      I2C_ErrorHandler("I2CWrite24",i2cAddress,memAddress+i,"I2C error on write");
+      I2C_ErrorHandler("I2C_Write24LE",i2cAddress,memAddress+i,"I2C error on write");
     }
   }
 };
 
-/* Reads a 24-bit value from the given address.
+/* Reads a 24-bit value from the given address in little-endian format.
  * Since I2C is an 8-bit protocol this will read the MSB from the address and the
  * nest two bytes from the next two addresses i.e. the LSB is read from (address+2).
  */
-uint32_t I2C_Read24(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress, uint8_t memAddress){
+uint32_t I2C_Read24LE(I2C_HandleTypeDef *i2cBus, I2C_Address_t i2cAddress, uint8_t memAddress){
   /* Single byte variable to store the byte being read */
   uint8_t data;
   /* Variable to store the final multi-byte value */
@@ -212,7 +261,7 @@ uint32_t I2C_Read24(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress, uint8_t 
      */
     if (HAL_I2C_Mem_Read(i2cBus, i2cAddress, memAddress+i, sizeof(uint8_t),
                          &data, 1, I2C_TIMEOUT) != HAL_OK) {
-      I2C_ErrorHandler("I2CRead24",i2cAddress,memAddress+i,"I2C error on read");
+      I2C_ErrorHandler("I2C_Read24LE",i2cAddress,memAddress+i,"I2C error on read");
     }
     /* Left shift the value by 8 bits to make room for the new data to be OR-ed in. */
     value = (value << 8) | data;
@@ -221,10 +270,59 @@ uint32_t I2C_Read24(I2C_HandleTypeDef *i2cBus, I2CAddress_t i2cAddress, uint8_t 
   return value;
 };
 
+/* Writes a 24-bit value to the given address in big-endian format.
+ * Since I2C is an 8-bit protocol this will write the MSB to the address and the
+ * other two bytes to the next two addresses so that the LSB is at (address+2).
+ */
+void I2C_Write24BE(I2C_HandleTypeDef *i2cBus, I2C_Address_t i2cAddress,
+                   uint8_t memAddress,uint32_t value) {
+  /* Single byte variable to store the byte being written */
+  uint8_t data;
+  /* Loop over the bytes extracting and then writing each one */
+  for (int i=0; i<3; i++) {
+    /* Right shift the value by a increasing multiple of 8 so that the LSB is
+     * written first (i=0) then mask out all but 8 bits.
+     */
+    data = (value >> (8*i)) & 0xff;
+    /* Write the extracted byte to the I2C bus remembering to increase the memory
+     * address in the device for each sucecssive byte.
+     */
+    if (HAL_I2C_Mem_Write(i2cBus, i2cAddress, memAddress+i, sizeof(uint8_t),
+                          &data, 1, I2C_TIMEOUT) != HAL_OK) {
+      I2C_ErrorHandler("I2C_Write24BE",i2cAddress,memAddress+i,"I2C error on write");
+    }
+  }
+};
+
+/* Reads a 24-bit value from the given address in big-endian format.
+ * Since I2C is an 8-bit protocol this will read the MSB from the address and the
+ * nest two bytes from the next two addresses i.e. the LSB is read from (address+2).
+ */
+uint32_t I2C_Read24BE(I2C_HandleTypeDef *i2cBus, I2C_Address_t i2cAddress, uint8_t memAddress){
+  /* Single byte variable to store the byte being read */
+  uint8_t data;
+  /* Variable to store the final multi-byte value */
+  uint32_t value=0;
+  /* Loop over the bytes extracting and then writing each one */
+  for (int i=0; i<3; i++) {
+    /* Read a byte from the I2C bus remembering to increase the memory
+     * address in the device for each successive byte.
+     */
+    if (HAL_I2C_Mem_Read(i2cBus, i2cAddress, memAddress+i, sizeof(uint8_t),
+                         &data, 1, I2C_TIMEOUT) != HAL_OK) {
+      I2C_ErrorHandler("I2C_Read24BE",i2cAddress,memAddress+i,"I2C error on read");
+    }
+    /* Left shift the data by 8 bits and OR it to the value. */
+    value |= (data << (8*i));
+  }
+  /* Return the final assembled value */
+  return value;
+};
+
 /* Handles I2C errors.
  * Function which reports on I2C errors which have been detected usually by the HAL code.
  */
-void I2C_ErrorHandler(char *func,I2CAddress_t i2cAddress, uint8_t memAddress,char *msg) {
+void I2C_ErrorHandler(char *func,I2C_Address_t i2cAddress, uint8_t memAddress,char *msg) {
   printf("%s (dev=0x%02x,addr=0c%02x): %s",func,i2cAddress,memAddress,msg);
   return;
 }

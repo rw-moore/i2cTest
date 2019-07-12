@@ -9,9 +9,9 @@
 #include "i2c.h"
 
 /* Default I2C address of all LPS22HB chips */
-static const I2CAddress_t LPS22HB_I2C_ADDRESS     = 0x5c;
+static const I2C_Address_t LPS22HB_I2C_ADDRESS     = 0x5c;
 /* Alternate I2C address of all LPS22HB chips used if SDO/SA0 pin is high*/
-static const I2CAddress_t LPS22HB_I2C_ADDRESS_ALT = 0x5d;
+static const I2C_Address_t LPS22HB_I2C_ADDRESS_ALT = 0x5d;
 
 /* Device ID stored in WHO_AM_I register */
 static const uint8_t LPS22HB_DEVICE_ID           = 0xb1;
@@ -215,30 +215,29 @@ typedef enum {
    * measurements.
    */
   LPS22HB_REG_LPFP_RES    = 0x33
-} LPS22HBRegister_t;
+} LPS22HB_Register_t;
 
 /* Structure to hold information about an LHS22HB device */
 typedef struct {
   I2C_HandleTypeDef *i2cBus;          /* I2C bus handler */
-  I2CAddress_t       i2cAddress;      /* Address on the I2C bus */
-} LPS22HBHandle_t;
+  I2C_Address_t       i2cAddress;      /* Address on the I2C bus */
+} LPS22HB_Handle_t;
 
 /* Create global structure to contain the configuration data for attached ADXL355 sensors */
-LPS22HBHandle_t lps22hb;
+LPS22HB_Handle_t lps22hb;
 
 /* LPS22HB Function prototypes */
-void LPS22HBInit(void);
-HAL_StatusTypeDef LPS22HBConfigure(LPS22HBHandle_t *dev);
-uint8_t LPS22HBReadRegister(LPS22HBHandle_t *dev,LPS22HBRegister_t reg);
-void LPS22HBWriteRegister(LPS22HBHandle_t *dev,LPS22HBRegister_t reg,uint8_t value);
+void LPS22HB_Initialize(void);
+HAL_StatusTypeDef LPS22HB_Configure(LPS22HB_Handle_t *dev);
+uint8_t LPS22HB_ReadRegister(LPS22HB_Handle_t *dev,LPS22HB_Register_t reg);
+void LPS22HB_WriteRegister(LPS22HB_Handle_t *dev,LPS22HB_Register_t reg,uint8_t value);
 
 /* Pressure functions */
-uint32_t LPS22HBReadPressure(LPS22HBHandle_t *dev);
-void LPS22HBSetReferenceP(LPS22HBHandle_t *dev, uint32_t value);
-uint32_t LPS22HBReadReferenceP(LPS22HBHandle_t *dev);
-void LPS22HBSetOffsetP(LPS22HBHandle_t *dev, uint32_t value);
-uint32_t LPS22HBReadOffsetP(LPS22HBHandle_t *dev);
-
+int32_t LPS22HB_ReadPressure(LPS22HB_Handle_t *dev);
+void LPS22HB_SetRefPressure(LPS22HB_Handle_t *dev, int32_t value);
+int32_t LPS22HB_ReadRefPressure(LPS22HB_Handle_t *dev);
+void LPS22HB_SetOffsetPressure(LPS22HB_Handle_t *dev, int32_t value);
+int32_t LPS22HB_ReadOffsetPressure(LPS22HB_Handle_t *dev);
 
 
 #endif //I2CTEST_LPS22HB_H
