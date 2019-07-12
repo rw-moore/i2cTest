@@ -41,7 +41,7 @@ HAL_StatusTypeDef LPS22HB_Configure(LPS22HB_Handle_t *dev) {
 /*
  * Reads a register on the LPS22HB and returns the value.
  */
-uint8_t LPS22HB_+ReadRegister(LPS22HB_Handle_t *dev, LPS22HB_Register_t reg) {
+uint8_t LPS22HB_ReadRegister(LPS22HB_Handle_t *dev, LPS22HB_Register_t reg) {
   uint8_t data;
   if (HAL_I2C_Mem_Read(dev->i2cBus, dev->i2cAddress,
                        reg, sizeof(uint8_t), &data, 1, I2C_TIMEOUT) != HAL_OK) {
@@ -63,7 +63,7 @@ void LPS22HB_WriteRegister(LPS22HB_Handle_t *dev, LPS22HB_Register_t reg, uint8_
 /*
  * Reads the reference pressure
  */
-uint32_t LPS22HB_ReadRefPressure(LPS22HB_Handle_t *dev) {
+int32_t LPS22HB_ReadRefPressure(LPS22HB_Handle_t *dev) {
 /* Read the reference pressure from the device casting the data into a signed integer
  * since it uses two's complement */
   int32_t ref=(int32_t)I2C_Read24BE(dev->i2cBus, dev->i2cAddress, LPS22HB_REG_REF_P_XL);
@@ -75,7 +75,7 @@ uint32_t LPS22HB_ReadRefPressure(LPS22HB_Handle_t *dev) {
  */
 void LPS22HB_SetRefPressure(LPS22HB_Handle_t *dev,int32_t ref) {
   /* Convert to an unsigned int and then mask the first 9 bits to give a 23 bit value. */
-  uint32_t val=((uint32_t)ref) & 0x7fffff);
+  uint32_t val=((uint32_t)ref) & 0x7fffff;
   /* Look at the sign of the reference and, if it is less than zero, set the 24th bit
    * since we are using two's complement */
   if(ref<0) val |= 0x800000;

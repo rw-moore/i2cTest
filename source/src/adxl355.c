@@ -148,7 +148,7 @@ uint16_t ADXL355_RawTemperature(ADXL355_Handle_t *dev) {
     return 0xffff;
   }
   /* Read the raw temperature from the device */
-  uint16_t temp=I2C_Read16(dev->i2cBus, dev->i2cAddress, ADXL355_REG_TEMP2);
+  uint16_t temp=I2C_Read16LE(dev->i2cBus, dev->i2cAddress, ADXL355_REG_TEMP2);
   /* Mask out the 4 reserved bits */
   return temp & 0x0fff;
 }
