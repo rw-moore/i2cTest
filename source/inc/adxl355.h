@@ -176,6 +176,8 @@ void ADXL355_Initialize(void);
 HAL_StatusTypeDef ADXL355_Configure(ADXL355_Handle_t *dev);
 void ADXL355_StandbyOn(ADXL355_Handle_t *dev);
 void ADXL355_StandbyOff(ADXL355_Handle_t *dev);
+void ADXL355_EnableTemperature(ADXL355_Handle_t *dev);
+void ADXL355_DisableTemperature(ADXL355_Handle_t *dev);
 void ADXL355_SetRange(ADXL355_Handle_t *dev, ADXL355_Range_t range);
 uint16_t ADXL355_RawTemperature(ADXL355_Handle_t *dev);
 int32_t ADXL355_XAcceleration(ADXL355_Handle_t *dev);

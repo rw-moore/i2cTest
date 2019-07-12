@@ -78,6 +78,42 @@ void ADXL355_StandbyOff(ADXL355_Handle_t *dev) {
 }
 
 /*
+ * Enables the temperature sensor
+ * Note: The documentation says that the configuration can only be changed when the device is in
+ * standby mode. However, since changing the temperature bit involves writing to the same register
+ * as changing the standby state it seems that this register's state can be updated whether or not
+ * the device is in standby.
+ */
+void ADXL355_EnableTemperature(ADXL355_Handle_t *dev) {
+  /* Read the current value of the register so that we do not change other settings */
+  uint8_t value=ADXL355_ReadRegister(dev,ADXL355_REG_POWER_CTL);
+  /* Set the temperature mode bit and ensure all reserved bits are masked out "just in case" */
+  value = (value & 0x07) | 2;
+  /* Write the new value back to the device */
+  ADXL355_WriteRegister(dev,ADXL355_REG_POWER_CTL,value);
+  /* Update the state of the device handler */
+  dev->enableTemp = true;
+}
+
+/*
+ * Disables the temperature sensor
+ * Note: The documentation says that the configuration can only be changed when the device is in
+ * standby mode. However, since changing the temperature bit involves writing to the same register
+ * as changing the standby state it seems that this register's state can be updated whether or not
+ * the device is in standby.
+ */
+void ADXL355_DisableTemperature(ADXL355_Handle_t *dev) {
+  /* Read the current value of the register so that we do not change other settings */
+  uint8_t value=ADXL355_ReadRegister(dev,ADXL355_REG_POWER_CTL);
+  /* Clear the temperature mode bit and ensure all reserved bits are also masked out "just in case" */
+  value &= 0x05;
+  /* Write the new value back to the device */
+  ADXL355_WriteRegister(dev,ADXL355_REG_POWER_CTL,value);
+  /* Update the state of the device handler */
+  dev->enableTemp = false;
+}
+
+/*
  * Sets the ADXL355's dynamic range.
  */
 void ADXL355_SetRange(ADXL355_Handle_t *dev, ADXL355_Range_t range) {
@@ -93,13 +129,18 @@ void ADXL355_SetRange(ADXL355_Handle_t *dev, ADXL355_Range_t range) {
   dev->range = range;
   /* If we are not supposed to be in standby mode then turn it off again */
   if(!dev->standby) ADXL355_StandbyOff(dev);
-
 }
 
 /*
  * Reads the current, raw temperature data.
  */
 uint16_t ADXL355_RawTemperature(ADXL355_Handle_t *dev) {
+  /* Check that the temperature sensor is enabled and if not then return an invalid value */
+  if(!dev->enableTemp) {
+    I2C_ErrorHandler("ADXL355_RawTemperature",dev->i2cAddress,ADXL355_REG_DEVID_AD,
+        "Attempt to read temperature while disabled");
+    return 0xffff;
+  }
   /* Read the raw temperature from the device */
   uint16_t temp=I2C_Read16(dev->i2cBus, dev->i2cAddress, ADXL355_REG_TEMP2);
   /* Mask out the 4 reserved bits */
@@ -218,8 +259,6 @@ void ADXL355_SetZTrim(ADXL355_Handle_t *dev,int32_t value) {
   uint32_t val=(((uint32_t)value) >> 4) & 0xffff;
   /* Write the trim data to the device */
   I2C_Write16(dev->i2cBus, dev->i2cAddress, ADXL355_REG_OFFSET_Z_H, (uint16_t)val);
-  
 }
-
 
 
