@@ -72,8 +72,9 @@ static void MX_USB_OTG_FS_PCD_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-extern ADXL355_cmdparser(char *buf);
-extern LPS22HB_cmdparser(char *buf);
+extern void ADXL355_cmdparser(char *buf);
+extern void LPS22HB_cmdparser(char *buf);
+extern void LIS3MDL_cmdparser(char *buf);
 
 void processData(char* buf) {
 	if (strlen(buf) == 0) {
@@ -121,6 +122,11 @@ void processData(char* buf) {
 
   if (!strncmp(buf,"lps22hb",7)) {
     LPS22HB_cmdparser(&buf[8]);
+    return;
+  }
+
+  if (!strncmp(buf,"lis3mdl",7)) {
+    LIS3MDL_cmdparser(&buf[8]);
     return;
   }
 
