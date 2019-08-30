@@ -231,8 +231,6 @@ LPS22HB_Handle_t lps22hb;
 /* LPS22HB Function prototypes */
 void LPS22HB_Initialize(void);
 HAL_StatusTypeDef LPS22HB_Configure(LPS22HB_Handle_t *dev);
-uint8_t LPS22HB_ReadRegister(LPS22HB_Handle_t *dev,LPS22HB_Register_t reg);
-void LPS22HB_WriteRegister(LPS22HB_Handle_t *dev,LPS22HB_Register_t reg,uint8_t value);
 
 /* Pressure functions */
 int32_t LPS22HB_ReadPressure(LPS22HB_Handle_t *dev);
@@ -247,5 +245,20 @@ void LPS22HB_AutoZeroOff(LPS22HB_Handle_t *dev);
 
 /* Temperature function */
 int16_t LPS22HB_ReadTemperature(LPS22HB_Handle_t *dev);
+
+// Simple inline functions
+/*
+ * Reads a register on the LPS22HB and returns the value.
+ */
+static inline uint8_t LPS22HB_ReadRegister(LPS22HB_Handle_t *dev, LPS22HB_Register_t reg) {
+  return I2C_Read8(dev->i2cBus, dev->i2cAddress, reg);
+}
+
+/*
+ * Writes to a register on the LPS22HB.
+ */
+static inline void LPS22HB_WriteRegister(LPS22HB_Handle_t *dev, LPS22HB_Register_t reg, uint8_t value) {
+  I2C_Write8(dev->i2cBus, dev->i2cAddress, reg, value);
+}
 
 #endif //I2CTEST_LPS22HB_H

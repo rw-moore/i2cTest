@@ -115,21 +115,85 @@ typedef enum {
    */
   LIS3MDL_REG_INT_THS_L = 0x32,
   LIS3MDL_REG_INT_THS_H = 0x33
-} LIS3MDLRegister_t;
+} LIS3MDL_Register_t;
+
+/* Dynamic ranges for magnetometer specified in gauss where 1 gauss = 0.1 mT*/
+typedef enum {
+  /* +/- 2 gauss dynamic range */
+      LIS3MDL_RANGE_4G  = 0,
+  /* +/- 8 gauss dynamic range */
+      LIS3MDL_RANGE_8G  = 1,
+  /* +/- 12 gauss dynamic range */
+      LIS3MDL_RANGE_12G = 2,
+  /* +/- 16 gauss dynamic range */
+      LIS3MDL_RANGE_16G = 3
+} LIS3MDL_Range_t;
 
 /* Structure to hold information about an LHS22HB device */
 typedef struct {
   I2C_HandleTypeDef *i2cBus;          /* I2C bus handler */
-  I2C_Address_t       i2cAddress;      /* Address on the I2C bus */
-} LIS3MDLHandle_t;
+  I2C_Address_t      i2cAddress;      /* Address on the I2C bus */
+  LIS3MDL_Range_t    range;           /* Configured dynamic range */
+  bool               enableTemp;      /* True if temperature measurement is enabled */
+} LIS3MDL_Handle_t;
 
 /* Create global structure to contain the configuration data for attached LIS3MDL sensors */
-LIS3MDLHandle_t lis3mdl;
+LIS3MDL_Handle_t lis3mdl;
 
 /* LIS3MDL Function prototypes */
-void LIS3MDLInit(void);
-HAL_StatusTypeDef LIS3MDLConfigure(LIS3MDLHandle_t *dev);
-uint8_t LIS3MDLReadRegister(LIS3MDLHandle_t *dev,LIS3MDLRegister_t reg);
-void LIS3MDLWriteRegister(LIS3MDLHandle_t *dev,LIS3MDLRegister_t reg,uint8_t value);
+void LIS3MDL_Init(void);
+HAL_StatusTypeDef LIS3MDL_Configure(LIS3MDL_Handle_t *dev);
+void LIS3MDL_EnableTemperature(LIS3MDL_Handle_t *dev);
+void LIS3MDL_DisableTemperature(LIS3MDL_Handle_t *dev);
+void LIS3MDL_SetRange(LIS3MDL_Handle_t *dev, LIS3MDL_Range_t range);
+float_t LIS3MDL_XBField(LIS3MDL_Handle_t *dev);
+float_t LIS3MDL_YBField(LIS3MDL_Handle_t *dev);
+float_t LIS3MDL_ZBField(LIS3MDL_Handle_t *dev);
+
+// Simple inline functions
+/*
+ * Reads a register on the LIS3MDL and returns the value.
+ */
+static inline uint8_t LIS3MDL_ReadRegister(LIS3MDL_Handle_t *dev, LIS3MDL_Register_t reg) {
+  return I2C_Read8(dev->i2cBus, dev->i2cAddress, reg);
+}
+
+/*
+ * Writes to a register on the LIS3MDL.
+ */
+static inline void LIS3MDL_WriteRegister(LIS3MDL_Handle_t *dev, LIS3MDL_Register_t reg, uint8_t value) {
+  I2C_Write8(dev->i2cBus, dev->i2cAddress, reg, value);
+}
+
+/*
+ * Reads the current, raw temperature data.
+ */
+static inline uint16_t LIS3MDL_ReadTemperature(LIS3MDL_Handle_t *dev) {
+  return I2C_Read16BE(dev->i2cBus, dev->i2cAddress, LIS3MDL_REG_TEMP_OUT_L);
+}
+
+/*
+ * Reads the raw x component magnetic field data.
+ */
+static inline int16_t LIS3MDL_RawXBField(LIS3MDL_Handle_t *dev) {
+  /* Read and return the magnetic field data from the device */
+  return I2C_Read16BE(dev->i2cBus, dev->i2cAddress, LIS3MDL_REG_OUT_X_L);
+}
+
+/*
+ * Reads the raw y component magnetic field data.
+ */
+static inline int16_t LIS3MDL_RawYBField(LIS3MDL_Handle_t *dev) {
+  /* Read and return the magnetic field data from the device */
+  return I2C_Read16BE(dev->i2cBus, dev->i2cAddress, LIS3MDL_REG_OUT_Y_L);
+}
+
+/*
+ * Reads the raw z component magnetic field data.
+ */
+static inline int16_t LIS3MDL_RawZBField(LIS3MDL_Handle_t *dev) {
+  /* Read and return the magnetic field data from the device */
+  return I2C_Read16BE(dev->i2cBus, dev->i2cAddress, LIS3MDL_REG_OUT_Z_L);
+}
 
 #endif //I2CTEST_LIS3MDL_H

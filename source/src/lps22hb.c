@@ -38,28 +38,6 @@ HAL_StatusTypeDef LPS22HB_Configure(LPS22HB_Handle_t *dev) {
 }
 
 /*
- * Reads a register on the LPS22HB and returns the value.
- */
-uint8_t LPS22HB_ReadRegister(LPS22HB_Handle_t *dev, LPS22HB_Register_t reg) {
-  uint8_t data;
-  if (HAL_I2C_Mem_Read(dev->i2cBus, dev->i2cAddress,
-                       reg, sizeof(uint8_t), &data, 1, I2C_TIMEOUT) != HAL_OK) {
-    Error_Handler();
-  }
-  return data;
-}
-
-/*
- * Writes to a register on the LPS22HB.
- */
-void LPS22HB_WriteRegister(LPS22HB_Handle_t *dev, LPS22HB_Register_t reg, uint8_t value) {
-  if (HAL_I2C_Mem_Write(dev->i2cBus, dev->i2cAddress,
-                        reg, sizeof(uint8_t), &value, 1, I2C_TIMEOUT) != HAL_OK) {
-    Error_Handler();
-  }
-}
-
-/*
  * Reads the reference pressure.
  * Note this is only used when the AUTOZERO or AUTORIFP modes are enabled.
  */
