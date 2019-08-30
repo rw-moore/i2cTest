@@ -2,13 +2,16 @@
 // Functions to test the ADXL355 functionality
 //
 #include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "adxl355.h"
 
 /*
  * Parses commands that execute ADXL355 functions
  */
-void ADXL355_cmdparser(const char *buf) {
+void ADXL355_cmdparser(char *buf) {
   char *cmd = strtok(buf, " ");
   char *arg1 = strtok(NULL, " ");
   char *arg2 = strtok(NULL, " ");
@@ -82,7 +85,7 @@ void ADXL355_cmdparser(const char *buf) {
     int32_t xaccel=ADXL355_XAcceleration(&adxl355);
     int32_t yaccel=ADXL355_YAcceleration(&adxl355);
     int32_t zaccel=ADXL355_ZAcceleration(&adxl355);
-    printf("ADXL355: Cuurent acceleration = (%d, %d, %d)\n",xaccel,yaccel,zaccel);
+    printf("ADXL355: Cuurent acceleration = (%ld, %ld, %ld)\n",xaccel,yaccel,zaccel);
     return;
   }
 
@@ -91,7 +94,7 @@ void ADXL355_cmdparser(const char *buf) {
     int32_t xtrim=ADXL355_XTrim(&adxl355);
     int32_t ytrim=ADXL355_YTrim(&adxl355);
     int32_t ztrim=ADXL355_ZTrim(&adxl355);
-    printf("ADXL355: Cuurent trim = (%d, %d, %d)\n",xtrim,ytrim,ztrim);
+    printf("ADXL355: Cuurent trim = (%ld, %ld, %ld)\n",xtrim,ytrim,ztrim);
     return;
   }
 
@@ -99,7 +102,7 @@ void ADXL355_cmdparser(const char *buf) {
   if(!strcmp(cmd,"setxtrim")) {
     int32_t trim = atoi(arg1);
     ADXL355_SetXTrim(&adxl355,trim);
-    printf("ADXL355: Set X trim to %d\n",trim);
+    printf("ADXL355: Set X trim to %ld\n",trim);
     return;
   }
 
@@ -107,7 +110,7 @@ void ADXL355_cmdparser(const char *buf) {
   if(!strcmp(cmd,"setytrim")) {
     int32_t trim = atoi(arg1);
     ADXL355_SetYTrim(&adxl355,trim);
-    printf("ADXL355: Set X trim to %d\n",trim);
+    printf("ADXL355: Set X trim to %ld\n",trim);
     return;
   }
 
@@ -115,7 +118,7 @@ void ADXL355_cmdparser(const char *buf) {
   if(!strcmp(cmd,"setztrim")) {
     int32_t trim = atoi(arg1);
     ADXL355_SetZTrim(&adxl355,trim);
-    printf("ADXL355: Set Z trim to %d\n",trim);
+    printf("ADXL355: Set Z trim to %ld\n",trim);
     return;
   }
 

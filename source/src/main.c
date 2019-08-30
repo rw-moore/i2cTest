@@ -72,8 +72,8 @@ static void MX_USB_OTG_FS_PCD_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-extern ADXL355_cmdparser(const char *buf);
-extern LPS22HB_cmdparser(const char *buf);
+extern ADXL355_cmdparser(char *buf);
+extern LPS22HB_cmdparser(char *buf);
 
 void processData(char* buf) {
 	if (strlen(buf) == 0) {

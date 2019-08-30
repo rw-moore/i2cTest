@@ -104,7 +104,7 @@ int32_t LPS22HB_ReadPressure(LPS22HB_Handle_t *dev) {
  */
 void LPS22HB_SetOffsetPressure(LPS22HB_Handle_t *dev, int32_t value) {
   /* Convert to an unsigned int and then mask the first 16 bits to give a 16 bit value. */
-  uint16_t val=((uint32_t)ref) & 0x7fff;
+  uint16_t val=((uint32_t)value) & 0x7fff;
   /* Look at the sign of the value and, if it is less than zero, set the 16th bit
    * since we are using two's complement */
   if(value<0) val |= 0x8000;
