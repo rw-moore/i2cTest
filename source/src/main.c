@@ -72,7 +72,8 @@ static void MX_USB_OTG_FS_PCD_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-
+extern ADXL355_cmdparser(const char *buf);
+extern LPS22HB_cmdparser(const char *buf);
 
 void processData(char* buf) {
 	if (strlen(buf) == 0) {
@@ -114,26 +115,16 @@ void processData(char* buf) {
   }
 
   if (!strncmp(buf,"adxl355",7)) {
-    char *cmd=strtok(buf," ");
-    char *arg1=strtok(NULL," ");
-    char *arg2=strtok(NULL," ");
-    if(!arg1) {
-      printf("Syntax error: adxl355 <reg> [<value>]\n");
-      return;
-    }
-    uint8_t reg=atoi(arg1);
-    if(!arg2) {
-      uint8_t value = ADXL355_ReadRegister(&adxl355, reg);
-      printf("ADXL355 register 0x%02x read 0x%02x (%d)\n", reg, value, value);
-    } else {
-      uint8_t value=atoi(arg2);
-      ADXL355_WriteRegister(&adxl355,reg,value);
-      printf("ADXL355 register 0x%02x wrote 0x%02x (%d)\n", reg, value, value);
-    }
+    ADXL355_cmdparser(&buf[8]);
     return;
   }
 
-	char oldBuf[strlen(buf)];
+  if (!strncmp(buf,"lps22hb",7)) {
+    LPS22HB_cmdparser(&buf[8]);
+    return;
+  }
+
+  char oldBuf[strlen(buf)];
 	strcpy(oldBuf, buf);
 	char* idStr = strtok(buf, " ");
 	char* cmd = strtok(NULL, " ");

@@ -220,7 +220,9 @@ typedef enum {
 /* Structure to hold information about an LHS22HB device */
 typedef struct {
   I2C_HandleTypeDef *i2cBus;          /* I2C bus handler */
-  I2C_Address_t       i2cAddress;      /* Address on the I2C bus */
+  I2C_Address_t      i2cAddress;      /* Address on the I2C bus */
+  bool               autoZeroMode;    /* Whether the device is in AUTOZERO mode */
+  bool               autoRIFPMode;    /* Whether the device is in AUTORIFP mode */
 } LPS22HB_Handle_t;
 
 /* Create global structure to contain the configuration data for attached ADXL355 sensors */
@@ -239,5 +241,11 @@ int32_t LPS22HB_ReadRefPressure(LPS22HB_Handle_t *dev);
 void LPS22HB_SetOffsetPressure(LPS22HB_Handle_t *dev, int32_t value);
 int32_t LPS22HB_ReadOffsetPressure(LPS22HB_Handle_t *dev);
 
+/* Configuration functions */
+void LPS22HB_AutoZeroOn(LPS22HB_Handle_t *dev);
+void LPS22HB_AutoZeroOff(LPS22HB_Handle_t *dev);
+
+/* Temperature function */
+int16_t LPS22HB_ReadTemperature(LPS22HB_Handle_t *dev);
 
 #endif //I2CTEST_LPS22HB_H

@@ -3,11 +3,12 @@
 //
 #include <ctype.h>
 
+#include "adxl355.h"
 
 /*
  * Parses commands that execute ADXL355 functions
  */
-void adxl355_cmdparser(const char *buf) {
+void ADXL355_cmdparser(const char *buf) {
   char *cmd = strtok(buf, " ");
   char *arg1 = strtok(NULL, " ");
   char *arg2 = strtok(NULL, " ");
@@ -49,7 +50,7 @@ void adxl355_cmdparser(const char *buf) {
   }
 
   // Enable/disable temperature readout
-  if(!strcmp(cmd,"temperature")) {
+  if(!strcmp(cmd,"tempsensor")) {
     // Convert the first argument to lower case to simplify checking
     for (char *p=arg1; *p; ++p) *p = tolower(*p);
     if(!strcmp(arg1,"on")) {
@@ -57,7 +58,7 @@ void adxl355_cmdparser(const char *buf) {
     } else if(!strcmp(arg1,"off")) {
       ADXL355_DisableTemperature(&adxl355);
     } else {
-      printf("Syntax error: adxl355 temperature [on|off]\n");
+      printf("Syntax error: adxl355 tempsensor [on|off]\n");
     }
     return;
   }
@@ -102,7 +103,7 @@ void adxl355_cmdparser(const char *buf) {
     return;
   }
 
-  // Sets the X trim
+  // Sets the Y trim
   if(!strcmp(cmd,"setytrim")) {
     int32_t trim = atoi(arg1);
     ADXL355_SetYTrim(&adxl355,trim);
@@ -110,7 +111,7 @@ void adxl355_cmdparser(const char *buf) {
     return;
   }
 
-  // Sets the X trim
+  // Sets the Z trim
   if(!strcmp(cmd,"setztrim")) {
     int32_t trim = atoi(arg1);
     ADXL355_SetZTrim(&adxl355,trim);

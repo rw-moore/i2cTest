@@ -29,15 +29,19 @@ void I2C_ErrorHandler(char *func,I2C_Address_t i2cAddress, uint8_t memAddress,ch
 void I2C_Write8(I2C_HandleTypeDef *i2cBus, I2C_Address_t i2cAddress, uint8_t memAddress,
                 uint8_t value);
 uint8_t I2C_Read8(I2C_HandleTypeDef *i2cBus, I2C_Address_t i2cAddress, uint8_t memAddress);
+/* Read and write 16 bit values in little-endian format */
 void I2C_Write16LE(I2C_HandleTypeDef *i2cBus, I2C_Address_t i2cAddress, uint8_t memAddress,
                    uint16_t value);
 uint16_t I2C_Read16LE(I2C_HandleTypeDef *i2cBus, I2C_Address_t i2cAddress, uint8_t memAddress);
+/* Read and write 16 bit values in big-endian format */
 void I2C_Write16BE(I2C_HandleTypeDef *i2cBus, I2C_Address_t i2cAddress, uint8_t memAddress,
                    uint16_t value);
 uint16_t I2C_Read16BE(I2C_HandleTypeDef *i2cBus, I2C_Address_t i2cAddress, uint8_t memAddress);
+/* Read and write 24 bit values in little-endian format */
 void I2C_Write24LE(I2C_HandleTypeDef *i2cBus, I2C_Address_t i2cAddress, uint8_t memAddress,
                    uint32_t value);
 uint32_t I2C_Read24LE(I2C_HandleTypeDef *i2cBus, I2C_Address_t i2cAddress, uint8_t memAddress);
+/* Read and write 24 bit values in big-endian format */
 void I2C_Write24BE(I2C_HandleTypeDef *i2cBus, I2C_Address_t i2cAddress, uint8_t memAddress,
                    uint32_t value);
 uint32_t I2C_Read24BE(I2C_HandleTypeDef *i2cBus, I2C_Address_t i2cAddress, uint8_t memAddress);
