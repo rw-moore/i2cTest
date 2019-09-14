@@ -323,6 +323,5 @@ uint32_t I2C_Read24BE(I2C_HandleTypeDef *i2cBus, I2C_Address_t i2cAddress, uint8
  * Function which reports on I2C errors which have been detected usually by the HAL code.
  */
 void I2C_ErrorHandler(char *func,I2C_Address_t i2cAddress, uint8_t memAddress,char *msg) {
-  printf("%s (dev=0x%02x,addr=0c%02x): %s",func,i2cAddress,memAddress,msg);
-  return;
+  printf("%s (dev=0x%02x,addr=0x%02x): %s\n",func,i2cAddress,memAddress,msg);
 }
